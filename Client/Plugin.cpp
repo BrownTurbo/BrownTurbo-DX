@@ -363,16 +363,6 @@ void BackgroundInitializationWorker() {
         }
         std::this_thread::sleep_for(std::chrono::milliseconds(100));
     }
-
-    hWnd = FindWindowA("Grand Theft Auto San Andreas", NULL);
-    if (hWnd && !oWndProc) {
-        oWndProc = reinterpret_cast<WNDPROC>(SetWindowLongPtrA(hWnd, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(hkWndProc)));
-    }
-	
-	void** vTableDevice = *(void***)(*(DWORD*)DEVICE_PTR);
-	g_vmtHooks = new VTableHookManager(vTableDevice, D3D_VFUNCTIONS);
-	oPresent = (_Present)g_vmtHooks->Hook(PRESENT_INDEX, (void*)hkPresent);
-	oReset = (_Reset)g_vmtHooks->Hook(RESET_INDEX, (void*)hkReset);
 	
 	rakhook::on_receive_packet += [](Packet *packet) -> bool {
 		if (packet->length == 0) return true;
@@ -383,6 +373,8 @@ void BackgroundInitializationWorker() {
 		
         if (packetId == 0x1B) // ID_TIMESTAMP
 		{
+			if (bs.GetNumberOfUnreadBits() < 4 * 8)
+				return true;
             bs.IgnoreBits(4 * 8); 
             bs.Read(packetId);
         }
@@ -398,6 +390,25 @@ void BackgroundInitializationWorker() {
 		}
 		return true;
 	};
+
+    hWnd = FindWindowA("Grand Theft Auto San Andreas", NULL);
+    if (hWnd && !oWndProc) {
+        oWndProc = reinterpret_cast<WNDPROC>(SetWindowLongPtrA(hWnd, GWLP_WNDPROC, reinterpret_cast<LONG_PTR>(hkWndProc)));
+    }
+
+    DWORD deviceAddr = 0;
+    int attempts = 0;
+    while ((deviceAddr = *(DWORD*)DEVICE_PTR) == 0 && attempts < 50) {
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+        ++attempts;
+    }
+
+    if (deviceAddr != 0) {
+        void** vTableDevice = *(void***)(deviceAddr);
+		g_vmtHooks = new VTableHookManager(vTableDevice, D3D_VFUNCTIONS);
+        oPresent = (_Present)g_vmtHooks->Hook(PRESENT_INDEX, (void*)hkPresent);
+        oReset = (_Reset)g_vmtHooks->Hook(RESET_INDEX, (void*)hkReset);
+    }
 }
 
 void c_plugin::game_loop()
