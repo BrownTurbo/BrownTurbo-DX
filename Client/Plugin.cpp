@@ -352,20 +352,7 @@ void BackgroundInitializationWorker() {
 	
     while (!initialized) {
         if (rakhook::samp_addr() && rakhook::samp_version() != rakhook::samp_ver::unknown) {
-            bool gamePtrValid = false;
-            rakhook::samp_ver currentVer = rakhook::samp_version();
-
-            if (currentVer == rakhook::samp_ver::v037r1) {
-                gamePtrValid = (sampapi::v037r1::RefGame() != nullptr);
-            } else if (currentVer == rakhook::samp_ver::v037r31) {
-                gamePtrValid = (sampapi::v037r3::RefGame() != nullptr);
-            } else if (currentVer == rakhook::samp_ver::v037r5) {
-                gamePtrValid = (sampapi::v037r5::RefGame() != nullptr);
-            } else if (currentVer == rakhook::samp_ver::v03dlr1) {
-                gamePtrValid = (sampapi::v03dl::RefGame() != nullptr);
-            }
-
-            if (gamePtrValid) {
+            if (IsGameInitialized()) {
                 if (rakhook::initialize()) {
                     initialized = true;
                     break;
