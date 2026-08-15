@@ -277,18 +277,20 @@ HRESULT __stdcall hkReset(IDirect3DDevice9* pDevice, D3DPRESENT_PARAMETERS* pp)
 
 HRESULT __stdcall hkPresent(IDirect3DDevice9* pDevice, const RECT* pSourceRect, const RECT* pDestRect, HWND hDestWindowOverride, const RGNDATA* pDirtyRegion)
 {
-	D3DVIEWPORT9 vp;
-	if (pDevice->GetViewport(&vp) == D3D_OK) {
-	  float w = (float)vp.Width;
-	  float h = (float)vp.Height;
-	  DWORD now = GetTickCount();
-	  if (w != g_screenWidth || h != g_screenHeight || (now - g_lastScreenSizeSendTime > 5000)) {
-		  g_screenWidth = w;
-		  g_screenHeight = h;
-		  g_lastScreenSizeSendTime = now;
-		  SendScreenWdthHghtRPC(g_screenWidth, g_screenHeight);
-	  }
-	}	
+	if (initialized) {
+		D3DVIEWPORT9 vp;
+		if (pDevice->GetViewport(&vp) == D3D_OK) {
+		  float w = (float)vp.Width;
+		  float h = (float)vp.Height;
+		  DWORD now = GetTickCount();
+		  if (w != g_screenWidth || h != g_screenHeight || (now - g_lastScreenSizeSendTime > 5000)) {
+			  g_screenWidth = w;
+			  g_screenHeight = h;
+			  g_lastScreenSizeSendTime = now;
+			  SendScreenWdthHghtRPC(g_screenWidth, g_screenHeight);
+		  }
+		}
+	}
 	return oPresent(pDevice, pSourceRect, pDestRect, hDestWindowOverride, pDirtyRegion);
 }
 
