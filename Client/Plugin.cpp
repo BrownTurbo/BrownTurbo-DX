@@ -411,12 +411,12 @@ void BackgroundInitializationWorker() {
 	};
 }
 
-static bool threadSpawned = false;
 void c_plugin::game_loop()
 {
     game_loop_hook.call_original();
 
-    if (!threadSpawned) {
+    static bool threadSpawned = false;
+	if (!threadSpawned) {
         threadSpawned = true;
         std::thread(BackgroundInitializationWorker).detach();
     }
